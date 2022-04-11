@@ -4,9 +4,14 @@
  */
 package com.gt.etl.ia.gui;
 
+import com.gt.etl.ia.database.ManejadorDB;
+import com.gt.etl.ia.manejadores.AgregarDatosTabla;
+import com.gt.etl.ia.manejadores.Archivo;
+import com.gt.etl.ia.manejadores.EjecutarCodigo;
 import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.filechooser.FileNameExtensionFilter;
@@ -17,13 +22,23 @@ import javax.swing.filechooser.FileNameExtensionFilter;
  */
 public class Principal extends javax.swing.JFrame {
     
+    private final Archivo manejadorArchivo;
+    private final EjecutarCodigo ejecutarCodigo;
+    private final ManejadorDB manejadorDB;
+    private final AgregarDatosTabla agregarDatosTabla;
+    private String pathArchivoCSV;
+    
     /**
      * Creates new form Principal
      */
     public Principal() {
         initComponents();
         this.setLocationRelativeTo(null);
-        deshabilitarComponentes();
+        deshabilitarComponentes(false);
+        this.manejadorArchivo = Archivo.getInstancia();
+        this.ejecutarCodigo = EjecutarCodigo.getInstancia();
+        this.manejadorDB = ManejadorDB.getInstacia();
+        this.agregarDatosTabla = AgregarDatosTabla.getAgregarDatosTabla();
     }
 
     /**
@@ -60,6 +75,7 @@ public class Principal extends javax.swing.JFrame {
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
+        textPaneErrores.setEditable(false);
         jScrollPane1.setViewportView(textPaneErrores);
 
         lblErrores.setFont(new java.awt.Font("Dialog", 1, 36)); // NOI18N
@@ -92,15 +108,22 @@ public class Principal extends javax.swing.JFrame {
 
         tablaEmpleados.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null}
+                {null, null, null},
+                {null, null, null},
+                {null, null, null}
             },
             new String [] {
-                "Title 1", "Title 2", "Title 3", "Title 4"
+                "Title 1", "Title 2", "Title 3"
             }
-        ));
+        ) {
+            boolean[] canEdit = new boolean [] {
+                false, false, false
+            };
+
+            public boolean isCellEditable(int rowIndex, int columnIndex) {
+                return canEdit [columnIndex];
+            }
+        });
         jScrollPane2.setViewportView(tablaEmpleados);
 
         javax.swing.GroupLayout panelEmpleadosLayout = new javax.swing.GroupLayout(panelEmpleados);
@@ -218,6 +241,11 @@ public class Principal extends javax.swing.JFrame {
         menu.add(menuFile);
 
         btnTransformar.setText("Transformar");
+        btnTransformar.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                btnTransformarMouseClicked(evt);
+            }
+        });
         menu.add(btnTransformar);
 
         menuAcercaDe.setText("Acerca de...");
@@ -243,32 +271,70 @@ public class Principal extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void btnCargarMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_btnCargarMouseClicked
-        // TODO add your handling code here:
-        cargarArchivo();
+        try {
+            // TODO add your handling code here:
+            cargarArchivo();
+        } catch (IOException ex) {
+            Logger.getLogger(Principal.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }//GEN-LAST:event_btnCargarMouseClicked
 
     private void btnLimpiarMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_btnLimpiarMouseClicked
         // TODO add your handling code here:
-         deshabilitarComponentes();
+         deshabilitarComponentes(false);
          this.path.setText("Archivo: ");
     }//GEN-LAST:event_btnLimpiarMouseClicked
 
-    private void deshabilitarComponentes() {
-         this.panelConPestanias.setVisible(false);
-         this.btnTransformar.setEnabled(false);
+    private void btnTransformarMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_btnTransformarMouseClicked
+        // TODO add your handling code here:
+        try {
+            File file  = new File("ejecutar.sh");
+            if (!file.exists()) {
+                JOptionPane.showMessageDialog(this, "Error no se encuentra el script de transformacion", "Error", JOptionPane.ERROR_MESSAGE);
+            } else {
+                JOptionPane.showMessageDialog(this, "Transformando los datos", "Transformando", JOptionPane.INFORMATION_MESSAGE);
+                System.out.println(pathArchivoCSV);
+                String command = "sh ejecutar.sh \'" + pathArchivoCSV + "\'";
+                System.out.println(command);
+                String[] commands = new String[3];
+                commands[0] = "sh";
+                commands[1] = "ejecutar.sh";
+                commands[2] = pathArchivoCSV;
+                String salida = EjecutarCodigo.runCommand(commands);
+                agregarAlReporte(salida);
+                deshabilitarComponentes(true);
+                agregarDatosTabla.agregarDatosTablaEmpleados(tablaEmpleados, manejadorDB.listaPersonas());
+                agregarDatosTabla.agreagaDatosTablaTrabajo(tablaTrabajo, manejadorDB.listaTrabajos());
+                agregarDatosTabla.agregarDatosTablaEmpresa(tablaEmpresas, manejadorDB.listaEmpresas());
+            }
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+    }//GEN-LAST:event_btnTransformarMouseClicked
+
+    private void deshabilitarComponentes(boolean estado) {
+        this.panelConPestanias.setVisible(estado);
+        this.btnTransformar.setEnabled(estado);
     }
     
-    private void cargarArchivo() {
+    private void cargarArchivo() throws IOException {
         JFileChooser chooser = new JFileChooser();
         chooser.setFileFilter(new FileNameExtensionFilter("Valores separados por comas (.csv)", "csv"));
         int opcion = chooser.showOpenDialog(this);
         if (opcion == JFileChooser.APPROVE_OPTION) {
             File archivo = chooser.getSelectedFile();
+            pathArchivoCSV = archivo.getAbsolutePath();
             System.out.println(archivo.getAbsolutePath());
             this.path.setText("Archivo: " + archivo.getName());
             JOptionPane.showMessageDialog(this, "Se cargo con exito el archivo.", "Cargado", JOptionPane.INFORMATION_MESSAGE);
-            this.btnTransformar.setEnabled(true);       
+            this.btnTransformar.setEnabled(true);
         }
+    }
+    
+    private void agregarAlReporte(String cadena){
+        this.textPaneErrores.setText(this.textPaneErrores.getText() + "-------------------------------------------------------------------------------------------------------------------------------\n");
+        this.textPaneErrores.setText(this.textPaneErrores.getText() + cadena);
+        this.textPaneErrores.setText(this.textPaneErrores.getText() + "\n-------------------------------------------------------------------------------------------------------------------------------\n");
     }
     
     // Variables declaration - do not modify//GEN-BEGIN:variables
