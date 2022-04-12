@@ -57,49 +57,56 @@ def crear_database():
     db.create_tables([Persona, Empresa, Trabajo])
 
 
-def obtener_o_crear_persona(row):
+def obtener_o_crear_persona(row, data_frame  : pd.DataFrame):
     try:
         # Buscar si existe el empleado
         empleado = Persona.get(Persona.dpi == int(row['dpi']))
         # moduloLimpiar.agregar_errores(int(int(index) + 1), "Ya existe un Empleado con el DPI: " + str(empleado.dpi), True, "dpi", "Duplicacion de Datos")
     except:
-        empleado = Persona (
-            dpi = int(row['dpi']),
-            primer_nombre = str(row['primer_nombre']),
-            segundo_nombre = str(row['segundo_nombre']),
-            primer_apellido = str(row['primer_apellido']),
-            segundo_apellido = str(row['segundo_apellido']),
-            apellido_casada = str(row['apellido_casada']),
-            nit = int(row['nit']),
-            genero = str(row['genero']),
-            orden_cedula = str(row['cedula_orden']),
-            registro_cedula = str(row['cedula_registro']),
-            direccion_residencia = str(row['direccion_residencia']),
-            telefono = int(row['telefono']),
-            email = str(row['correo_electronico'])
-        )
-        empleado.save()
+        try:
+            empleado = Persona.get(Persona.dpi == int(row['nit']))
+        except:
+            empleado = Persona (
+                dpi = int(row['dpi']),
+                primer_nombre = str(row['primer_nombre']),
+                segundo_nombre = str(row['segundo_nombre']),
+                primer_apellido = str(row['primer_apellido']),
+                segundo_apellido = str(row['segundo_apellido']),
+                apellido_casada = str(row['apellido_casada']),
+                nit = int(row['nit']),
+                genero = str(row['genero']),
+                orden_cedula = (comprobar_existencia_columnas(row, 'cedula_orden', data_frame)),
+                registro_cedula = (comprobar_existencia_columnas(row, 'cedula_registro', data_frame)),
+                direccion_residencia = (comprobar_existencia_columnas(row, 'direccion_residencia', data_frame)),
+                telefono = (comprobar_existencia_columnas(row, 'telefono', data_frame)),
+                email = (comprobar_existencia_columnas(row, 'correo_electronico', data_frame)),
+                fecha_nacimiento = comprobar_existencia_columnas(row, 'fecha_nacimiento', data_frame)
+            )
+            empleado.save()
     return empleado
 
 def obtener_o_crear_empresa(nombre, nit, codigo, direccion = None, telefono = None):
     try:
         empresa = Empresa.get(Empresa.nit == int(nit))
     except:
-        empresa = Empresa (
-            nombre_empresa = str(nombre),
-            nit = int(nit),
-            codigo = int(codigo),
-            direccion = str(direccion),
-            telefono = str(telefono),
-        )
-        empresa.save()
+        try:
+            empresa = Empresa.get(Empresa.codigo == int(codigo))
+        except:
+            empresa = Empresa (
+                nombre_empresa = str(nombre),
+                nit = int(nit),
+                codigo = int(codigo),
+                direccion = (direccion),
+                telefono = (telefono),
+            )
+            empresa.save()
     return empresa
 
 
-def crear_contrato(data_frame = pd.DataFrame): 
+def crear_contrato(data_frame : pd.DataFrame): 
     for index, row in data_frame.iterrows(): 
-        empleado = obtener_o_crear_persona(row)
-        empresa = obtener_o_crear_empresa(row['nombre_empresa'], row['nit_empresa'], row['codigo_unico_empresa'], row['direccion_empresa'], row['telefono_empresa'])
+        empleado = obtener_o_crear_persona(row, data_frame)
+        empresa = obtener_o_crear_empresa(row['nombre_empresa'], row['nit_empresa'], row['codigo_unico_empresa'], comprobar_existencia_columnas(row, 'direccion_empresa', data_frame), comprobar_existencia_columnas(row, 'telefono_empresa', data_frame))
         try:
             trabajo = Trabajo.get(Trabajo.id_persona == empleado, Trabajo.fecha_incial == row['fecha_inicial'], Trabajo.id_empresa == empresa)
             moduloLimpiar.agregar_errores(int(int(index) + 1), "Ya existe un contrato del empleado con el DPI: " + str(empleado.dpi) + ", con la fecha inicial: " + str(row['fecha_inicial']) + " y en la empresa: " + str(empresa.nombre_empresa), True, "*", "Duplicacion de Datos")
@@ -109,13 +116,19 @@ def crear_contrato(data_frame = pd.DataFrame):
                 id_empresa = empresa.id_empresa,
                 fecha_incial = row['fecha_inicial'],
                 fecha_final = row['fecha_final'],
-                nombre_puesto = None,
-                mes_planilla = None,
+                nombre_puesto = comprobar_existencia_columnas(row, 'nombre_puesto', data_frame),
+                mes_planilla = comprobar_existencia_columnas(row, 'mes_planilla', data_frame),
                 salario = round(float(row['salario']), 2)
             )
             trabajo.save()
 
 # Obteniendo el path del archivo
+
+def comprobar_existencia_columnas(row, column, data_frame : pd.DataFrame):
+    if column in data_frame.columns: 
+        return row[column]
+    else: 
+        return None
 
 pathArchivoCSV = ""
 index = 1
@@ -138,6 +151,8 @@ data_frame = limpiar.limpiar_caracter_especial(data_frame, "genero", "Masculino"
 data_frame = limpiar.limpiar_caracter_especial(data_frame, "condicion_laboral", "Activo", "Inactivo", 'a', 'A', 'i', 'I', False)
 data_frame = limpiar.limpiar_fechas(data_frame, 'fecha_inicial', True)
 data_frame = limpiar.limpiar_fechas(data_frame,'fecha_final', True)
+if 'fecha_nacimiento' in data_frame.columns:
+    data_frame = limpiar.limpiar_fechas(data_frame, 'fecha_nacimiento', True)
 
 crear_database()
 crear_contrato(data_frame)

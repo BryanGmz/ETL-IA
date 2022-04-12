@@ -70,7 +70,6 @@ public class Principal extends javax.swing.JFrame {
         btnCargar = new javax.swing.JMenu();
         btnLimpiar = new javax.swing.JMenu();
         btnTransformar = new javax.swing.JMenu();
-        menuAcercaDe = new javax.swing.JMenu();
         path = new javax.swing.JMenu();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
@@ -248,9 +247,6 @@ public class Principal extends javax.swing.JFrame {
         });
         menu.add(btnTransformar);
 
-        menuAcercaDe.setText("Acerca de...");
-        menu.add(menuAcercaDe);
-
         path.setText("Archivo: ");
         menu.add(path);
 
@@ -282,6 +278,8 @@ public class Principal extends javax.swing.JFrame {
     private void btnLimpiarMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_btnLimpiarMouseClicked
         // TODO add your handling code here:
          deshabilitarComponentes(false);
+         this.pathArchivoCSV = "";
+         this.textPaneErrores.setText("");
          this.path.setText("Archivo: ");
     }//GEN-LAST:event_btnLimpiarMouseClicked
 
@@ -347,7 +345,6 @@ public class Principal extends javax.swing.JFrame {
     private javax.swing.JScrollPane jScrollPane4;
     private javax.swing.JLabel lblErrores;
     private javax.swing.JMenuBar menu;
-    private javax.swing.JMenu menuAcercaDe;
     private javax.swing.JMenu menuFile;
     private javax.swing.JTabbedPane panelConPestanias;
     private javax.swing.JPanel panelEmpleados;

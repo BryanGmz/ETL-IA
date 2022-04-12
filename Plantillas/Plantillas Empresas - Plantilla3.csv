@@ -1,0 +1,6 @@
+codigo_unico_empresa,nombre_empresa,nit_empresa,condicion_laboral,salario,dpi,nit,primer_nombre,segundo_nombre,primer_apellido,segundo_apellido,apellido_casada,genero,departamento_trabajo,municipio_trabajo,fecha_inicial,fecha_final
+6,Lenovo,111111-2,A,"3,500.50",80808080,80808080,Bartolo,Manolo,Gonzales ,Hernandez,Hernandez,M,Quetzaltenango,Quetzaltenango,25/04/2019,31/03/2020
+7,HP,222222-3,A,2500,70707070,70707070,Artur,Melendo,Garcia,Lopez,Garcia,M,Quetzaltenango,Salcaja,25/07/2022,01/09/2022
+8,Spirit,333333-4,A,5000.50,60606060,60606060,Alex,Antonio,Lopez,Perez,Lopez,M,Quetzaltenango,Salcaja,15/01/2021,09/08/2022
+8,MacroSistemas,333333-5,A,2500,50505050,50505050,Flor,Andrea,Hernandez,Hernandez,Hernandez,F,Quetzaltenango,Quetzaltenango,08/01/2011,05/02/2016
+9,Xelapan,555555-6,A,1500,10101000,10101000,Mirella,Luisa,Perez,Huinac,Gonzales,F,Quetzaltenango,Quetzaltenango,12/12/2018,01/05/2020

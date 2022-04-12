@@ -4,8 +4,6 @@ import pandas as pd
 import numpy as np
 from datetime import datetime
 
-from sqlalchemy import null
-
 # Log Errores
 errores = ""
 
@@ -114,7 +112,7 @@ def parsear_fecha(fecha):
             elif (contador == 6):
                 fecha_dt = datetime.strptime(fecha, '%m/%Y/%d')
             else: 
-                fecha_dt = null
+                fecha_dt = None
             salir = True
         except:
             contador += 1

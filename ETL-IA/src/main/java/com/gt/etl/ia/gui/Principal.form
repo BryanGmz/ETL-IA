@@ -35,11 +35,6 @@
             <EventHandler event="mouseClicked" listener="java.awt.event.MouseListener" parameters="java.awt.event.MouseEvent" handler="btnTransformarMouseClicked"/>
           </Events>
         </Menu>
-        <Menu class="javax.swing.JMenu" name="menuAcercaDe">
-          <Properties>
-            <Property name="text" type="java.lang.String" value="Acerca de..."/>
-          </Properties>
-        </Menu>
         <Menu class="javax.swing.JMenu" name="path">
           <Properties>
             <Property name="text" type="java.lang.String" value="Archivo: "/>
